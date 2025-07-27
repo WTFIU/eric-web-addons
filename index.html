@@ -7,11 +7,24 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 600px;
+      max-width: 700px;
       margin: 0 auto;
       padding: 20px;
       background: #f7f7f7;
       color: #333;
+    }
+    nav {
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    nav a {
+      margin: 0 10px;
+      text-decoration: none;
+      font-weight: bold;
+      color: #00c244;
+    }
+    nav a:hover {
+      text-decoration: underline;
     }
     h1, h2 {
       text-align: center;
@@ -59,18 +72,11 @@
       cursor: pointer;
       user-select: none;
     }
-    .extension-item button {
-      margin-left: 10px;
-      padding: 6px 12px;
-      background: #00c244;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    .extension-item button:hover {
-      background: #009e30;
+    a.download-link {
+      text-decoration: none;
+      color: #00c244;
+      font-weight: bold;
+      margin-left: 12px;
     }
     #cart-list {
       list-style: none;
@@ -114,15 +120,15 @@
       background: #999;
       cursor: not-allowed;
     }
-    a.download-link {
-      text-decoration: none;
-      color: #00c244;
-      font-weight: bold;
-      margin-left: 12px;
-    }
   </style>
 </head>
 <body>
+  <nav>
+    <a href="index.html">Store</a> |
+    <a href="about.html">About</a> |
+    <a href="faq.html">FAQ</a>
+  </nav>
+
   <h1>Eric's Extensions Store</h1>
 
   <div class="tabs">
@@ -132,9 +138,7 @@
 
   <div class="content">
     <div id="store" class="tab-content">
-      <ul class="extension-list" id="extension-list">
-        <!-- Extensions will load here -->
-      </ul>
+      <ul class="extension-list" id="extension-list"></ul>
     </div>
 
     <div id="cart" class="tab-content" style="display:none;">
@@ -146,7 +150,6 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
   <script>
-    // Your single extension info
     const extensions = [
       {
         id: 'discord-word-filter',
