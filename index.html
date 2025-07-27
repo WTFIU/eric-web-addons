@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eric's Extensions Store</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f7f7f7;
+      color: #333;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #222;
+    }
+    .tabs {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+      gap: 20px;
+    }
+    .tab {
+      cursor: pointer;
+      padding: 10px 20px;
+      background: #ddd;
+      border-radius: 8px;
+      user-select: none;
+      font-weight: bold;
+      color: #555;
+      transition: background 0.3s, color 0.3s;
+    }
+    .tab.active {
+      background: #00c244;
+      color: white;
+    }
+    .content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .extension-list {
+      list-style: none;
+      padding: 0;
+    }
+    .extension-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #eee;
+      padding: 12px 0;
+    }
+    .extension-item label {
+      flex: 1;
+      cursor: pointer;
+      user-select: none;
+    }
+    .extension-item button {
+      margin-left: 10px;
+      padding: 6px 12px;
+      background: #00c244;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .extension-item button:hover {
+      background: #009e30;
+    }
+    #cart-list {
+      list-style: none;
+      padding: 0;
+    }
+    #cart-list li {
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #cart-list button {
+      background: #e74c3c;
+      border: none;
+      padding: 4px 8px;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    #cart-list button:hover {
+      background: #c0392b;
+    }
+    #download-all {
+      margin-top: 20px;
+      padding: 12px 25px;
+      background: #007bff;
+      border: none;
+      color: white;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+      display: block;
+      width: 100%;
+      max-width: 300px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    #download-all:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+    a.download-link {
+      text-decoration: none;
+      color: #00c244;
+      font-weight: bold;
+      margin-left: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Eric's Extensions Store</h1>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="store">Store</div>
+    <div class="tab" data-tab="cart">Cart</div>
+  </div>
+
+  <div class="content">
+    <div id="store" class="tab-content">
+      <ul class="extension-list" id="extension-list">
+        <!-- Extensions will load here -->
+      </ul>
+    </div>
+
+    <div id="cart" class="tab-content" style="display:none;">
+      <h2>Your Cart</h2>
+      <ul id="cart-list"></ul>
+      <button id="download-all" disabled>Download All as ZIP</button>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
+  <script>
+    // Your single extension info
+    const extensions = [
+      {
+        id: 'discord-word-filter',
+        name: 'Discord Word Filter',
+        description: 'A Discord extension that filters inappropriate words.',
+        url: 'https://github.com/WTFIU/discord-word-filter/archive/refs/heads/main.zip'
+      }
+    ];
+
+    let cart = [];
+
+    const extensionList = document.getElementById('extension-list');
+    const cartList = document.getElementById('cart-list');
+    const downloadAllBtn = document.getElementById('download-all');
+    const tabs = document.querySelectorAll('.tab');
+    const storeTabContent = document.getElementById('store');
+    const cartTabContent = document.getElementById('cart');
+
+    function loadExtensions() {
+      extensionList.innerHTML = '';
+      extensions.forEach(ext => {
+        const li = document.createElement('li');
+        li.className = 'extension-item';
+
+        const label = document.createElement('label');
+        label.htmlFor = ext.id;
+        label.innerHTML = `<strong>${ext.name}</strong> — ${ext.description}`;
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = ext.id;
+        checkbox.checked = cart.includes(ext.id);
+        checkbox.addEventListener('change', () => toggleCart(ext.id));
+
+        const downloadLink = document.createElement('a');
+        downloadLink.href = ext.url;
+        downloadLink.textContent = 'Download';
+        downloadLink.className = 'download-link';
+        downloadLink.target = '_blank';
+        downloadLink.rel = 'noopener noreferrer';
+
+        li.appendChild(checkbox);
+        li.appendChild(label);
+        li.appendChild(downloadLink);
+        extensionList.appendChild(li);
+      });
+    }
+
+    function toggleCart(id) {
+      if (cart.includes(id)) {
+        cart = cart.filter(x => x !== id);
+      } else {
+        cart.push(id);
+      }
+      updateCart();
+      loadExtensions();
+    }
+
+    function updateCart() {
+      cartList.innerHTML = '';
+      if (cart.length === 0) {
+        cartList.innerHTML = '<li>Your cart is empty.</li>';
+        downloadAllBtn.disabled = true;
+        return;
+      }
+
+      cart.forEach(id => {
+        const ext = extensions.find(e => e.id === id);
+        const li = document.createElement('li');
+        li.textContent = ext.name;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = 'Remove';
+        removeBtn.addEventListener('click', () => {
+          cart = cart.filter(x => x !== id);
+          updateCart();
+          loadExtensions();
+        });
+
+        const dlLink = document.createElement('a');
+        dlLink.href = ext.url;
+        dlLink.textContent = 'Download';
+        dlLink.target = '_blank';
+        dlLink.rel = 'noopener noreferrer';
+        dlLink.className = 'download-link';
+
+        li.appendChild(dlLink);
+        li.appendChild(removeBtn);
+        cartList.appendChild(li);
+      });
+
+      downloadAllBtn.disabled = cart.length === 0;
+    }
+
+    async function downloadAll() {
+      if (cart.length === 0) return;
+
+      downloadAllBtn.textContent = 'Preparing ZIP...';
+      downloadAllBtn.disabled = true;
+
+      const zip = new JSZip();
+
+      try {
+        for (const id of cart) {
+          const ext = extensions.find(e => e.id === id);
+          if (!ext) continue;
+
+          const response = await fetch(ext.url);
+          if (!response.ok) throw new Error(`Failed to fetch ${ext.name}`);
+
+          const blob = await response.blob();
+          const fileName = ext.name.replace(/\s+/g, '_').toLowerCase() + '.zip';
+          zip.file(fileName, blob);
+        }
+
+        const content = await zip.generateAsync({ type: 'blob' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(content);
+        a.download = 'eric_extensions_bundle.zip';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        downloadAllBtn.textContent = 'Download All as ZIP';
+        downloadAllBtn.disabled = false;
+      } catch (error) {
+        alert('Error creating ZIP: ' + error.message);
+        downloadAllBtn.textContent = 'Download All as ZIP';
+        downloadAllBtn.disabled = false;
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        if (tab.dataset.tab === 'store') {
+          storeTabContent.style.display = 'block';
+          cartTabContent.style.display = 'none';
+        } else {
+          storeTabContent.style.display = 'none';
+          cartTabContent.style.display = 'block';
+          updateCart();
+        }
+      });
+    });
+
+    downloadAllBtn.addEventListener('click', downloadAll);
+
+    loadExtensions();
+  </script>
+</body>
+</html>
